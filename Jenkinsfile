@@ -10,11 +10,14 @@ pipeline {
         DOCKERHUB_CREDENTIALS = '0981'
     }
     stages {
+        //checkout the code from the repo
         stage('Checkout Code') {
             steps {
                 git url: REPO_URL
             }
         }
+
+        //install all the dependencies
         stage('Install Dependencies') {
             steps {
                 script {
