@@ -16,6 +16,9 @@ RUN npx browserslist@latest --update-db
 # Copy the rest of the application code to the working directory
 COPY . .
 
+# Add a debugging step to print the installed dependencies
+RUN npm list
+
 # Build the React application
 RUN npm run build
 
