@@ -10,22 +10,27 @@ pipeline {
         DOCKERHUB_CREDENTIALS = '0981'
     }
     stages {
-        //checkout the code from the repo
         stage('Checkout Code') {
             steps {
                 git url: REPO_URL
             }
         }
-
-        //install all the dependencies
         stage('Install Dependencies') {
             steps {
                 script {
-                    sh 'cd client && npm install'
-                    sh 'cd Auth && npm install'
-                    sh 'cd Classrooms && npm install'
-                    sh 'cd event-bus && npm install'
-                    sh 'cd Post && npm install'
+                    if (isUnix()) {
+                        sh 'cd client && npm install'
+                        sh 'cd Auth && npm install'
+                        sh 'cd Classrooms && npm install'
+                        sh 'cd event-bus && npm install'
+                        sh 'cd Post && npm install'
+                    } else {
+                        bat 'cd client && npm install'
+                        bat 'cd Auth && npm install'
+                        bat 'cd Classrooms && npm install'
+                        bat 'cd event-bus && npm install'
+                        bat 'cd Post && npm install'
+                    }
                 }
             }
         }
@@ -56,13 +61,23 @@ pipeline {
         stage('Run Containers') {
             steps {
                 script {
-                    sh 'docker network create mern-network'
-                    docker.image(FRONTEND_IMAGE).run('-d --network mern-network -p 9811:3000')
-                    docker.image(AUTH_IMAGE).run('-d --network mern-network -p 9812:4000')
-                    docker.image(CLASSROOMS_IMAGE).run('-d --network mern-network -p 9813:4001')
-                    docker.image(EVENT_BUS_IMAGE).run('-d --network mern-network -p 9814:4009')
-                    docker.image(POST_IMAGE).run('-d --network mern-network -p 9815:4002')
-                    sh 'docker run -d --network mern-network -p 9816:27017 --name mongodb mongo:latest'
+                    if (isUnix()) {
+                        sh 'docker network create mern-network'
+                        docker.image(FRONTEND_IMAGE).run('-d --network mern-network -p 9811:3000')
+                        docker.image(AUTH_IMAGE).run('-d --network mern-network -p 9812:4000')
+                        docker.image(CLASSROOMS_IMAGE).run('-d --network mern-network -p 9813:4001')
+                        docker.image(EVENT_BUS_IMAGE).run('-d --network mern-network -p 9814:4009')
+                        docker.image(POST_IMAGE).run('-d --network mern-network -p 9815:4002')
+                        sh 'docker run -d --network mern-network -p 9816:27017 --name mongodb mongo:latest'
+                    } else {
+                        bat 'docker network create mern-network'
+                        bat "docker run -d --network mern-network -p 9811:3000 ${FRONTEND_IMAGE}"
+                        bat "docker run -d --network mern-network -p 9812:4000 ${AUTH_IMAGE}"
+                        bat "docker run -d --network mern-network -p 9813:4001 ${CLASSROOMS_IMAGE}"
+                        bat "docker run -d --network mern-network -p 9814:4009 ${EVENT_BUS_IMAGE}"
+                        bat "docker run -d --network mern-network -p 9815:4002 ${POST_IMAGE}"
+                        bat 'docker run -d --network mern-network -p 9816:27017 --name mongodb mongo:latest'
+                    }
                 }
             }
         }
@@ -70,7 +85,11 @@ pipeline {
     post {
         always {
             script {
-                docker ps
+                if (isUnix()) {
+                    sh 'docker ps'
+                } else {
+                    bat 'docker ps'
+                }
             }
         }
     }
