@@ -10,6 +10,9 @@ COPY package*.json ./
 # Install the project dependencies
 RUN npm install
 
+# Update Browserslist database
+RUN npx browserslist@latest --update-db
+
 # Copy the rest of the application code to the working directory
 COPY . .
 
